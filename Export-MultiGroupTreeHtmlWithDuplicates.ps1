@@ -22,6 +22,9 @@ None
 .PARAMETER StartGroupNames
 Array of Active Directory group names as starting point.
 
+.PARAMETER HtmlOutputPat
+Where to save the HTML Report and file name of the HTML-Report
+
 .EXAMPLE
 Export-MultiGroupTreeHtmlWithDuplicates -StartGroupNames "GroupA", "GroupB", "GroupC")
 Generates a HTML-Report for the Groups "GroupA", "GroupB" and "GroupC".
