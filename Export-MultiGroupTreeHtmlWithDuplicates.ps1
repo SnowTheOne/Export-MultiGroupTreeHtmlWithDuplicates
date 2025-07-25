@@ -8,37 +8,26 @@
 ActiveDirectory, AD, Groups, GroupMembership, Recursive, DuplicateMembers, HTMLReport
 
 .DESCRIPTION
-Erstellt einen HTML-Report mit den Mitgliedschaften mehrerer AD-Gruppen, zeigt verschachtelte Gruppen, doppelte Nutzer (pro Baum) und erkennt Zyklen in der Gruppenstruktur.
+Generates  an easy to read HTML-Report which shows graphically an highlighted the nested group structure, duplicate user memberships (users who are members of multiple nested groups) and duplicate nested groups within these groups.
 
 .EXTERNALMODULEDEPENDENCIES
 ActiveDirectory
 
 .REQUIREDSCRIPTS
-Keine
+None
 
 .EXTERNALSCRIPTDEPENDENCIES
-Keine
-
-.RELEASENOTES
-Version 2.0.2
-- SamAccountName wird hinter jedem Benutzernamen angezeigt
-- Duplikaterkennung je Gruppenbaum bleibt bestehen
-#>
-
-<#
-.DESCRIPTION
-Ermittelt rekursiv die Mitglieder mehrerer Active Directory-Gruppen und erstellt einen HTML-Bericht,
-der doppelte Nutzermitgliedschaften (pro Gruppenbaum) und verschachtelte Gruppenstrukturen inklusive Zyklen hervorhebt.
+None
 
 .PARAMETER StartGroupNames
-Ein Array von AD-Gruppennamen als Strings, die als Ausgangspunkt für die Analyse dienen.
+Array of Active Directory group names as starting point.
 
 .EXAMPLE
-Export-MultiGroupTreeHtmlWithDuplicates -StartGroupNames @("GruppeA", "GruppeB", "GruppeC")
-Erzeugt einen HTML-Report für die Gruppen "GruppeA", "GruppeB" und "GruppeC".
+Export-MultiGroupTreeHtmlWithDuplicates -StartGroupNames "GroupA", "GroupB", "GroupC")
+Generates a HTML-Report for the Groups "GroupA", "GroupB" and "GroupC".
 
 .NOTES
-Benötigt das ActiveDirectory PowerShell-Modul und angemessene Rechte, um Gruppenmitgliedschaften auszulesen.
+Needs the ActiveDirectory PowerShell-Module and appropriate permissions to browse group memberships.
 #>
 
 function Export-MultiGroupTreeHtmlWithDuplicates {
@@ -51,14 +40,14 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
 
     $htmlParts = New-Object System.Collections.Generic.List[string]
     $htmlParts.Add("<html><head><meta charset='utf-8'><style>body {font-family: Calibri;} ul {margin-left: 1em;} .cyc {color: red;} .dup {color: orange; font-weight: bold;} </style></head><body>")
-    $htmlParts.Add("<h1>AD Gruppenstrukturen mit doppelten Nutzern (pro Baum)</h1>")
+    $htmlParts.Add("<h1>AD group structure with duplicate users per Tree</h1>")
 
     foreach ($StartGroupName in $StartGroupNames) {
         $visitedGroups = @{}
         $globalUserSet = @{}
         $duplicateUsers = @{}
 
-        $htmlParts.Add("<h2>AD Gruppenstruktur: $StartGroupName</h2>")
+        $htmlParts.Add("<h2>AD group structure: $StartGroupName</h2>")
         $htmlParts.Add("<ul>")
 
         function Add-ToHtml {
@@ -66,14 +55,14 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
 
             if ($visitedGroups.ContainsKey($groupDN)) {
                 $groupName = $visitedGroups[$groupDN]
-                $htmlParts.Add("<li><span class='cyc'>$groupName (Zyklus erkannt)</span></li>")
+                $htmlParts.Add("<li><span class='cyc'>$groupName (duplicate detected)</span></li>")
                 return
             }
 
             try {
                 $group = Get-ADGroup -Identity $groupDN -Properties Name -ErrorAction Stop
             } catch {
-                $htmlParts.Add("<li><i>Gruppe $groupDN nicht gefunden</i></li>")
+                $htmlParts.Add("<li><i>Group $groupDN not found</i></li>")
                 return
             }
 
@@ -84,7 +73,7 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
 
             $members = Get-ADGroupMember -Identity $groupDN -ErrorAction SilentlyContinue
             if (-not $members) {
-                $htmlParts.Add("<li><i>Keine Mitglieder</i></li>")
+                $htmlParts.Add("<li><i>No members</i></li>")
             } else {
                 foreach ($m in $members) {
                     if ($m.objectClass -eq 'group') {
@@ -95,7 +84,7 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
 
                         if ($globalUserSet.ContainsKey($userKey)) {
                             $duplicateUsers[$userKey] = $displayName
-                            $htmlParts.Add("<li class='dup'>$displayName (bereits gezeigt)</li>")
+                            $htmlParts.Add("<li class='dup'>$displayName (duplicate found)</li>")
                         } else {
                             $globalUserSet[$userKey] = $true
                             $htmlParts.Add("<li>$displayName</li>")
@@ -111,20 +100,19 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
             $startGroup = Get-ADGroup -Identity $StartGroupName -Properties DistinguishedName
             Add-ToHtml -groupDN $startGroup.DistinguishedName
         } catch {
-            $htmlParts.Add("<li><i>Startgruppe $StartGroupName nicht gefunden</i></li>")
+            $htmlParts.Add("<li><i>Group $StartGroupName not found</i></li>")
         }
 
         $htmlParts.Add("</ul>")
 
-        # Optional: Doppelte Nutzer pro Baum auflisten
         if ($duplicateUsers.Count -gt 0) {
-            $htmlParts.Add("<h3>Doppelte Nutzer in $StartGroupName</h3><ul>")
+            $htmlParts.Add("<h3>Duplicate users found in group $StartGroupName</h3><ul>")
             foreach ($dupUser in $duplicateUsers.GetEnumerator() | Sort-Object Value) {
                 $htmlParts.Add("<li>$($dupUser.Value)</li>")
             }
             $htmlParts.Add("</ul>")
         } else {
-            $htmlParts.Add("<p>Keine doppelten Nutzer in $StartGroupName gefunden.</p>")
+            $htmlParts.Add("<p>No duplicate users found in group $StartGroupName.</p>")
         }
     }
 
@@ -133,6 +121,6 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
     $htmlOutput = $htmlParts -join "`r`n"
     Set-Content -Path $HtmlOutputPath -Value $htmlOutput -Encoding UTF8
 
-    Write-Host "✅ HTML-Datei mit SamAccountName-Hinweis erzeugt: $HtmlOutputPath"
+    Write-Host "✅ HTML-Report generated: $HtmlOutputPath"
     Start-Process $HtmlOutputPath
 }
