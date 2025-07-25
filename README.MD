@@ -1,40 +1,37 @@
 # Export-MultiGroupTreeHtmlWithDuplicates
 
-## Beschreibung
+## Description
 
-Dieses PowerShell-Skript analysiert rekursiv die Mitgliedschaften mehrerer Active Directory Gruppen.  
-Es erzeugt einen übersichtlichen HTML-Report, der
+This PowerShell-Script recursively analyzes the group memberships of multiple Active-Directory groups. 
+It generates an easy to read HTML-Report which shows graphically an highlighted
 
-- die verschachtelten Gruppenstrukturen,
-- doppelte Nutzermitgliedschaften (also Benutzer, die in mehreren Gruppen vorkommen),
-- sowie Zykluserkennungen in der Gruppenverschachtelung
+- the nested group structure,
+- duplicate user memberships (users who are members of multiple nested groups),
+- duplicate nested groups within these groups
 
-grafisch darstellt und hervorhebt.
+## Prerequisites
 
-## Voraussetzungen
+- PowerShell with installed ActiveDirectory-Module   
+- Appropriate Permission to browse AD-Groups and members
 
-- PowerShell mit installiertem ActiveDirectory-Modul  
-- Angemessene Berechtigungen, um AD-Gruppen und deren Mitglieder auszulesen
-
-## Verwendung
+## Usage
 
 ```powershell
-Export-MultiGroupTreeHtmlWithDuplicates -StartGroupNames "GruppeA", "GruppeB", "GruppeC" -HtmlOutputPath "C:\Pfad\Zu\Report.html"
+Export-MultiGroupTreeHtmlWithDuplicates -StartGroupNames "GroupA", "GroupB", "GroupC" -HtmlOutputPath "C:\path\to\Report.html"
 ```
 
 ## Parameter
 
-| Parameter         | Beschreibung                                               | Typ        | Pflicht  | Standardwert                      |
+| Parameter         | Description                                               | Type        | Mandatory  | Default                      |
 |-------------------|------------------------------------------------------------|------------|----------|----------------------------------|
-| `StartGroupNames` | Array von Active Directory Gruppennamen als Ausgangspunkt  | `string[]` | Ja       | -                                |
-| `HtmlOutputPath`  | Speicherort und Dateiname des generierten HTML-Reports    | `string`   | Nein     | `. \MultiGroupTreeWithDuplicates.html` |
+| `StartGroupNames` | Array of Active Directory group names as starting point  | `string[]` | Yes       | -                                |
+| `HtmlOutputPath`  | Where to save and file name of HTML-Report    | `string`   | No     | `. \MultiGroupTreeWithDuplicates.html` |
 
 
-## Funktionsweise
+## Function
 
-- Für jede Startgruppe wird die Gruppenmitgliedschaft rekursiv ausgelesen.  
-- Gruppen werden als Baumstruktur dargestellt.  
-- Zyklen in der Gruppenverschachtelung werden erkannt und farblich markiert.  
-- Benutzer, die mehrfach in verschiedenen Gruppen auftauchen, werden im Bericht farblich hervorgehoben und am Ende des Reports gelistet.  
+- Members of each start group are browsed recursively.  
+- Groups and members are shown as Tree-Structure.  
+- Duplicate nested groups or members are highlighted in color.  
 
 
