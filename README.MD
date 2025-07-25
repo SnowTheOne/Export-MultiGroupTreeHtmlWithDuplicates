@@ -25,7 +25,7 @@ Export-MultiGroupTreeHtmlWithDuplicates -StartGroupNames "GroupA", "GroupB", "Gr
 | Parameter         | Description                                               | Type        | Mandatory  | Default                      |
 |-------------------|------------------------------------------------------------|------------|----------|----------------------------------|
 | `StartGroupNames` | Array of Active Directory group names as starting point  | `string[]` | Yes       | -                                |
-| `HtmlOutputPath`  | Where to save and file name of HTML-Report    | `string`   | No     | `. \MultiGroupTreeWithDuplicates.html` |
+| `HtmlOutputPath`  | Where to save the HTML Report and file name of the HTML-Report    | `string`   | No     | `. \MultiGroupTreeWithDuplicates.html` |
 
 
 ## Function
