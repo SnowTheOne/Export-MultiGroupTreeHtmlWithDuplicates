@@ -2,13 +2,13 @@
 .PSScriptInfo
 
 .VERSION
-2.0.0
+2.0.2
 
 .TAGS
 ActiveDirectory, AD, Groups, GroupMembership, Recursive, DuplicateMembers, HTMLReport
 
 .DESCRIPTION
-Erstellt einen HTML-Report mit den Mitgliedschaften mehrerer AD-Gruppen, zeigt verschachtelte Gruppen, doppelte Nutzer und erkennt Zyklen in der Gruppenstruktur.
+Erstellt einen HTML-Report mit den Mitgliedschaften mehrerer AD-Gruppen, zeigt verschachtelte Gruppen, doppelte Nutzer (pro Baum) und erkennt Zyklen in der Gruppenstruktur.
 
 .EXTERNALMODULEDEPENDENCIES
 ActiveDirectory
@@ -20,16 +20,15 @@ Keine
 Keine
 
 .RELEASENOTES
-Version 2.0.0
-- Unterstützt mehrere Start-Gruppen
-- Erkennt und markiert doppelte Nutzermitgliedschaften
-- Erzeugt übersichtlichen HTML-Report mit Visualisierung der AD-Gruppenstruktur
+Version 2.0.2
+- SamAccountName wird hinter jedem Benutzernamen angezeigt
+- Duplikaterkennung je Gruppenbaum bleibt bestehen
 #>
 
 <#
 .DESCRIPTION
 Ermittelt rekursiv die Mitglieder mehrerer Active Directory-Gruppen und erstellt einen HTML-Bericht,
-der doppelte Nutzermitgliedschaften und verschachtelte Gruppenstrukturen inklusive Zyklen hervorhebt.
+der doppelte Nutzermitgliedschaften (pro Gruppenbaum) und verschachtelte Gruppenstrukturen inklusive Zyklen hervorhebt.
 
 .PARAMETER StartGroupNames
 Ein Array von AD-Gruppennamen als Strings, die als Ausgangspunkt für die Analyse dienen.
@@ -52,14 +51,12 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
 
     $htmlParts = New-Object System.Collections.Generic.List[string]
     $htmlParts.Add("<html><head><meta charset='utf-8'><style>body {font-family: Calibri;} ul {margin-left: 1em;} .cyc {color: red;} .dup {color: orange; font-weight: bold;} </style></head><body>")
-    $htmlParts.Add("<h1>AD Gruppenstrukturen mit doppelten Nutzern</h1>")
-
-    # HashSets zur Duplikaterkennung
-    $globalUserSet = @{}
-    $duplicateUsers = @{}
+    $htmlParts.Add("<h1>AD Gruppenstrukturen mit doppelten Nutzern (pro Baum)</h1>")
 
     foreach ($StartGroupName in $StartGroupNames) {
         $visitedGroups = @{}
+        $globalUserSet = @{}
+        $duplicateUsers = @{}
 
         $htmlParts.Add("<h2>AD Gruppenstruktur: $StartGroupName</h2>")
         $htmlParts.Add("<ul>")
@@ -93,14 +90,15 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
                     if ($m.objectClass -eq 'group') {
                         Add-ToHtml -groupDN $m.DistinguishedName
                     } else {
-                        # Duplikate prüfen
                         $userKey = $m.SamAccountName
+                        $displayName = "$($m.Name) ($userKey)"
+
                         if ($globalUserSet.ContainsKey($userKey)) {
-                            $duplicateUsers[$userKey] = $m.Name
-                            $htmlParts.Add("<li class='dup'>$($m.Name) (bereits gezeigt)</li>")
+                            $duplicateUsers[$userKey] = $displayName
+                            $htmlParts.Add("<li class='dup'>$displayName (bereits gezeigt)</li>")
                         } else {
                             $globalUserSet[$userKey] = $true
-                            $htmlParts.Add("<li>$($m.Name)</li>")
+                            $htmlParts.Add("<li>$displayName</li>")
                         }
                     }
                 }
@@ -117,25 +115,24 @@ function Export-MultiGroupTreeHtmlWithDuplicates {
         }
 
         $htmlParts.Add("</ul>")
-    }
 
-    # Liste der doppelten Nutzer
-    if ($duplicateUsers.Count -gt 0) {
-        $htmlParts.Add("<h2>Doppelte Nutzer in der Struktur</h2>")
-        $htmlParts.Add("<ul>")
-        foreach ($dupUser in $duplicateUsers.GetEnumerator() | Sort-Object Name) {
-            $htmlParts.Add("<li>$($dupUser.Value) (SamAccountName: $($dupUser.Key))</li>")
+        # Optional: Doppelte Nutzer pro Baum auflisten
+        if ($duplicateUsers.Count -gt 0) {
+            $htmlParts.Add("<h3>Doppelte Nutzer in $StartGroupName</h3><ul>")
+            foreach ($dupUser in $duplicateUsers.GetEnumerator() | Sort-Object Value) {
+                $htmlParts.Add("<li>$($dupUser.Value)</li>")
+            }
+            $htmlParts.Add("</ul>")
+        } else {
+            $htmlParts.Add("<p>Keine doppelten Nutzer in $StartGroupName gefunden.</p>")
         }
-        $htmlParts.Add("</ul>")
-    } else {
-        $htmlParts.Add("<p>Keine doppelten Nutzer gefunden.</p>")
     }
 
     $htmlParts.Add("</body></html>")
 
-    $htmlOutput = $htmlParts.ToArray() -join "`r`n"
+    $htmlOutput = $htmlParts -join "`r`n"
     Set-Content -Path $HtmlOutputPath -Value $htmlOutput -Encoding UTF8
 
-    Write-Host "✅ HTML-Datei mit doppelten Nutzern erzeugt: $HtmlOutputPath"
+    Write-Host "✅ HTML-Datei mit SamAccountName-Hinweis erzeugt: $HtmlOutputPath"
     Start-Process $HtmlOutputPath
 }
