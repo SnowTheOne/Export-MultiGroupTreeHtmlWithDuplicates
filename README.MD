@@ -20,6 +20,7 @@ grafisch darstellt und hervorhebt.
 
 ```powershell
 Export-MultiGroupTreeHtmlWithDuplicates -StartGroupNames "GruppeA", "GruppeB", "GruppeC" -HtmlOutputPath "C:\Pfad\Zu\Report.html"
+```
 
 ## Parameter
 
