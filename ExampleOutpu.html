@@ -1,0 +1,55 @@
+
+<html><head><meta charset='utf-8'><style>body {font-family: Calibri;} ul {margin-left: 1em;} .cyc {color: red;} .dup {color: orange; font-weight: bold;} </style></head><body>
+<h1>AD Gruppenstrukturen mit doppelten Nutzern (pro Baum)</h1>
+<h2>AD Gruppenstruktur: GruppeA</h2>
+<ul>
+<li>GruppeA<ul>
+<li>GruppeB<ul>
+<li>GruppeC<ul>
+<li><span class='cyc'>GruppeA (Zyklus erkannt)</span></li>
+<li>Erika Musterfrau (erika.musterfrau)</li>
+</ul></li>
+<li>Max Mustermann (max.mustermann)</li>
+</ul></li>
+<li><span class='cyc'>GruppeC (Zyklus erkannt)</span></li>
+<li class='dup'>Max Mustermann (max.mustermann) (bereits gezeigt)</li>
+</ul></li>
+</ul>
+<h3>Doppelte Nutzer in GruppeA</h3><ul>
+<li>Max Mustermann (max.mustermann)</li>
+</ul>
+<h2>AD Gruppenstruktur: GruppeB</h2>
+<ul>
+<li>GruppeB<ul>
+<li>GruppeC<ul>
+<li>GruppeA<ul>
+<li><span class='cyc'>GruppeB (Zyklus erkannt)</span></li>
+<li><span class='cyc'>GruppeC (Zyklus erkannt)</span></li>
+<li>Max Mustermann (max.mustermann)</li>
+</ul></li>
+<li>Erika Musterfrau (erika.musterfrau)</li>
+</ul></li>
+<li class='dup'>Max Mustermann (max.mustermann) (bereits gezeigt)</li>
+</ul></li>
+</ul>
+<h3>Doppelte Nutzer in GruppeB</h3><ul>
+<li>Max Mustermann (max.mustermann)</li>
+</ul>
+<h2>AD Gruppenstruktur: GruppeC</h2>
+<ul>
+<li>GruppeC<ul>
+<li>GruppeA<ul>
+<li>GruppeB<ul>
+<li><span class='cyc'>GruppeC (Zyklus erkannt)</span></li>
+<li>Max Mustermann (max.mustermann)</li>
+</ul></li>
+<li><span class='cyc'>GruppeC (Zyklus erkannt)</span></li>
+<li class='dup'>Max Mustermann (max.mustermann) (bereits gezeigt)</li>
+</ul></li>
+<li>Erika Musterfrau (erika.musterfrau)</li>
+</ul></li>
+</ul>
+<h3>Doppelte Nutzer in GruppeC</h3><ul>
+<li>Max Mustermann (max.mustermann)</li>
+</ul>
+</body></html>
